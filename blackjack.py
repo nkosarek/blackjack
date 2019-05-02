@@ -3,6 +3,14 @@ import time
 
 from participants import *
 
+###############################################################
+# TODO:
+#   how to remove player with no money
+#   min and max bets
+#   double down
+#   better draw
+###############################################################
+
 
 class Game:
     def __init__(self):
@@ -34,56 +42,81 @@ class Game:
             self.players.append(Player(i + 1))
 
         while True:
-            self.deal()
+            self._play_round()
 
-            self.curr_player = 0
-            self.draw()
-            for player in self.players:
-                while player.prompt_move():
-                    if not player.add_card(self.deck.get_card()):
-                        break
-                    self.draw()
-                self.curr_player += 1
-                self.draw()
+    def _play_round(self):
+        self._draw()
+        self._prompt_bets()
+        self._deal()
 
-            while 0 <= self.dealer.hand_value < kDealerStandMin:
-                self.dealer.add_card(self.deck.get_card())
-                self.draw()
-                time.sleep(1)
+        for self.curr_player in xrange(len(self.players)):
+            self._draw()
+            player = self.players[self.curr_player]
+            while player.prompt_move():
+                if not player.add_card(self.deck.get_card()):
+                    # Bust
+                    player.settle_up(-player.current_bet)
+                    break
+                self._draw()
+        self._draw()
 
-            self.payout()
-            # self.draw()
-            time.sleep(2)
-            self.clear_table()
+        while 0 <= self.dealer.hand_value < kDealerStandMin:
+            self.dealer.add_card(self.deck.get_card())
+            self._draw()
+            time.sleep(1)
 
-            if self.deck.should_be_reshuffled:
-                self.deck.shuffle()
-
-    def payout(self):
-        print "PAYING OUT"
+        self._settle_up()
+        # self._draw()
         time.sleep(2)
+        self._clear_table()
 
-    def clear_table(self):
-        self.dealer.clear_hand()
+        if self.deck.should_be_reshuffled:
+            self.deck.shuffle()
+
+    def _prompt_bets(self):
         for player in self.players:
-            player.clear_hand()
+            player.prompt_bet()
 
-    def deal(self):
+    def _deal(self):
         for _ in xrange(kNumCardsToDeal):
             for player in self.players:
                 player.add_card(self.deck.get_card())
 
             self.dealer.add_card(self.deck.get_card())
 
-    def draw(self):
+    def _settle_up(self):
+        for player in self.players:
+            if player.hand_value < 0:
+                # Bust should have already been settled
+                continue
+            elif self.dealer.hand_value < 0 or \
+                    self.dealer.hand_value < player.hand_value:
+                player.settle_up(player.current_bet)
+            elif self.dealer.hand_value > player.hand_value:
+                player.settle_up(-player.current_bet)
+            else:
+                player.settle_up(0)
+
+    def _clear_table(self):
+        self.dealer.clear_hand()
+        for player in self.players:
+            player.clear_hand()
+
+    def _draw(self):
         print "*********************************"
         print "Dealer: ", self.dealer.hand_value
-        players_str = "Players: "
-        arrow_loc = len(players_str) + (4 * self.curr_player)
+        value_str = "Players: "
+        money_str = " " * len(value_str)
+        bet_str = money_str
+        arrow_loc = len(value_str) + (6 * self.curr_player)
         for player in self.players:
             player_val = "*" if player.hand_value < 0 else player.hand_value
-            players_str += "{:<4}".format(player_val)
-        print players_str
+            value_str += "{:<6}".format(player_val)
+            money_str += "${:<5}".format(player.money)
+            bet_str += "${:<5}".format(player.current_bet)
+        print value_str
+        print money_str
+        print bet_str
         if self.curr_player < len(self.players):
             print arrow_loc * " " + "^"
 

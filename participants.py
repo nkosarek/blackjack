@@ -52,6 +52,22 @@ class Player(Participant):
     def __init__(self, number):
         super(Player, self).__init__()
         self.number = number
+        self.current_bet = 0
+        self.money = kInitPlayerMoney
+
+    def prompt_bet(self):
+        while True:
+            input_str = raw_input("Player " + str(self.number) +
+                                  ", place your bet: ")
+            if not input_str.isdigit():
+                print "Invalid input. Please input an integer"
+                continue
+            bet = int(input_str)
+            if bet > self.money:
+                print "Invalid input. You don't have that much money to bet"
+            else:
+                self.current_bet = bet
+                return
 
     def prompt_move(self):
         while True:
@@ -62,6 +78,10 @@ class Player(Participant):
             elif input_str == "s":
                 return False
             print "Invalid input. Please type either 'h' or 's'"
+
+    def settle_up(self, payout):
+        self.money += payout
+        self.current_bet = 0
 
 
 class Dealer(Participant):

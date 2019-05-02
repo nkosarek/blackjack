@@ -12,3 +12,5 @@ kDealerStandMin = 17
 
 kMinNumPlayers = 1
 kMaxNumPlayers = 7
+
+kInitPlayerMoney = 1000
