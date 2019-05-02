@@ -1,3 +1,13 @@
+###############################################################
+#
+# blackjack.py
+# Author: Nicholas Kosarek
+#
+# Rules based on summary here:
+#   https://bicyclecards.com/how-to-play/blackjack/
+#
+###############################################################
+
 import random
 import time
 
@@ -5,7 +15,6 @@ from participants import *
 
 ###############################################################
 # TODO:
-#   split pairs
 #   better draw
 #   unit tests
 ###############################################################
@@ -107,6 +116,7 @@ class Game:
             player.settle_up(player.current_bet + player.current_bet / 2)
             return True
 
+        settled_up = False
         player_should_move = True
         while player_should_move:
             move = player.prompt_move()
@@ -114,10 +124,11 @@ class Game:
                 player.add_card(self.deck.get_card())
                 # If player busts, settle them up
                 if player.hand_value < 0:
-                    player.settle_up(-player.current_bet)
+                    player.settle_up_first(-player.current_bet)
                     if player.money == 0:
                         self.broke_count += 1
-                    return True
+                    settled_up = True
+                    break
                 # If player reaches max (21), don't prompt more moves
                 elif player.hand_value == kMaxHandValue:
                     break
@@ -126,10 +137,41 @@ class Game:
                 player.add_card(self.deck.get_card())
                 player.double_down()
                 player_should_move = False
+            elif move == kSplitPair:
+                player.split_pair()
+                self._draw()
             else:
                 player_should_move = False
-        # Did not settle up yet
-        return False
+
+        # Allow player to make moves on second hand if they split a pair
+        if player.has_split and not self._get_player_split_moves(player):
+            return False
+
+        return settled_up
+
+    def _get_player_split_moves(self, player):
+        player.move_on_to_second_hand()
+        self._draw()
+        settled_up = False
+        player_should_move = True
+        while player_should_move:
+            move = player.prompt_move()
+            if move == kHit:
+                player.add_card_to_second(self.deck.get_card())
+                # If player busts, settle them up
+                if player.second_hand_value < 0:
+                    player.settle_up_second(-player.current_second_bet)
+                    if player.money == 0:
+                        self.broke_count += 1
+                    settled_up = True
+                    break
+                # If player reaches max (21), don't prompt more moves
+                elif player.second_hand_value == kMaxHandValue:
+                    break
+                self._draw()
+            else:
+                player_should_move = False
+        return settled_up
 
     def _settle_up(self):
         for player in self.players:
@@ -137,7 +179,7 @@ class Game:
             if player.money == 0:
                 continue
             # Bust/natural should have already been settled
-            if player.has_been_settled:
+            if player.has_been_settled():
                 continue
             # Player beats dealer
             elif self.dealer.hand_value < 0 or \
@@ -164,11 +206,21 @@ class Game:
         value_str = "Players: "
         money_str = " " * len(value_str)
         bet_str = money_str
-        arrow_loc = len(value_str) + (6 * self.curr_player)
+        arrow_loc = len(value_str) + (12 * self.curr_player)
+        if self.players[self.curr_player].on_second_hand:
+            arrow_loc += 6
         for player in self.players:
-            value_str += "{:<6}".format(player.get_hand_value_str())
-            money_str += "${:<5}".format(player.money)
-            bet_str += "${:<5}".format(player.current_bet)
+            hand_value_str = get_hand_value_str(player.hand_value)
+            if player.has_split:
+                second_hand_value_str = get_hand_value_str(player.second_hand_value)
+                value_str += "{:<6}".format(hand_value_str)
+                value_str += "{:<6}".format(second_hand_value_str)
+                bet_str += "${:<5}".format(player.current_bet)
+                bet_str += "${:<5}".format(player.current_second_bet)
+            else:
+                value_str += "{:<12}".format(hand_value_str)
+                bet_str += "${:<11}".format(player.current_bet)
+            money_str += "${:<11}".format(player.money)
         print value_str
         print money_str
         print bet_str
