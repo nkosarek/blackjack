@@ -5,7 +5,6 @@ from participants import *
 
 ###############################################################
 # TODO:
-#   Fix can_double_down to account for aces
 #   split pairs
 #   better draw
 #   unit tests

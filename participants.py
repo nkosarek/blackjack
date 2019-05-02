@@ -9,7 +9,7 @@ def get_card_value(card):
         return card_rank + 1
 
 
-def get_hand_value(hand):
+def get_highest_valid_hand_value(hand):
     hand_value = 0
     num_aces = 0
     for card in hand:
@@ -31,6 +31,31 @@ def get_hand_value(hand):
     return hand_value + num_aces * kAceValue
 
 
+def get_all_valid_hand_values(hand):
+    num_aces = 0
+    base_hand_value = 0
+    for card in hand:
+        card_val = get_card_value(card)
+        if card_val == kAceValue:
+            num_aces += 1
+        else:
+            base_hand_value += card_val
+
+    hand_values = set()
+    hand_values.add(base_hand_value)
+
+    for _ in xrange(num_aces):
+        new_hand_values = set()
+        for value in hand_values:
+            if (value + kAceValue) <= kMaxHandValue:
+                new_hand_values.add(value + kAceValue)
+            if (value + kAltAceValue) <= kMaxHandValue:
+                new_hand_values.add(value + kAltAceValue)
+        hand_values = new_hand_values
+
+    return hand_values
+
+
 class Participant(object):
     def __init__(self):
         self.hand = []
@@ -38,7 +63,7 @@ class Participant(object):
 
     def add_card(self, card):
         self.hand.append(card)
-        self.hand_value = get_hand_value(self.hand)
+        self.hand_value = get_highest_valid_hand_value(self.hand)
 
     def clear_hand(self):
         self.hand = []
@@ -73,7 +98,7 @@ class Player(Participant):
                 return
 
     def prompt_move(self):
-        can_double_down = self.can_double_down()
+        can_double_down = self._can_double_down()
         if can_double_down:
             input_prompt = kMovePromptWithDoubleDown.format(self.number)
             error_msg = kMoveErrorWithDoubleDown
@@ -98,14 +123,6 @@ class Player(Participant):
         self.has_made_move = True
         return move
 
-    def can_double_down(self):
-        # TODO: Fix this to account for 9,10,11 made with an ace
-        if not self.has_made_move and \
-                self.current_bet * 2 <= self.money and \
-                9 <= self.hand_value <= 11:
-            return True
-        return False
-
     def double_down(self):
         self.current_bet *= 2
 
@@ -119,6 +136,20 @@ class Player(Participant):
         self.has_been_settled = False
         self.has_made_move = False
 
+    def _can_double_down(self):
+        if not self.has_made_move and \
+                self.current_bet * 2 <= self.money and \
+                self._one_hand_value_can_double_down():
+            return True
+        return False
+
+    def _one_hand_value_can_double_down(self):
+        hand_values = get_all_valid_hand_values(self.hand)
+        for value in hand_values:
+            if 9 <= value <= 11:
+                return True
+        return False
+
 
 class Dealer(Participant):
     def __init__(self):
@@ -127,3 +158,7 @@ class Dealer(Participant):
 
     def reveal_second_card(self):
         self.second_card_visible = True
+
+    def clear_hand(self):
+        super(Dealer, self).clear_hand()
+        self.second_card_visible = False
