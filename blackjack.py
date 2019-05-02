@@ -5,8 +5,6 @@ from participants import *
 
 ###############################################################
 # TODO:
-#   how to remove player with no money
-#   double down
 #   Fix can_double_down to account for aces
 #   split pairs
 #   better draw
@@ -52,13 +50,16 @@ class Game:
 
         left_to_settle_up = len(self.players)
         for self.curr_player in xrange(len(self.players)):
+            player = self.players[self.curr_player]
+            # Player has no money, skip them
+            if player.money == 0:
+                continue
+
             self._draw()
 
             # If dealer has natural, immediately settle everyone up
             if self.dealer.hand_value == kMaxHandValue:
                 break
-
-            player = self.players[self.curr_player]
 
             if self._get_player_moves(player):
                 left_to_settle_up -= 1
@@ -79,13 +80,19 @@ class Game:
 
     def _prompt_bets(self):
         for self.curr_player in xrange(len(self.players)):
-            self._draw()
             player = self.players[self.curr_player]
+            # Player has no money, skip them
+            if player.money == 0:
+                continue
+            self._draw()
             player.prompt_bet()
 
     def _deal(self):
         for _ in xrange(kNumCardsToDeal):
             for player in self.players:
+                # Player has no money, skip them
+                if player.money == 0:
+                    continue
                 player.add_card(self.deck.get_card())
 
             self.dealer.add_card(self.deck.get_card())
@@ -121,6 +128,9 @@ class Game:
 
     def _settle_up(self):
         for player in self.players:
+            # Player has no money, skip them
+            if player.money == 0:
+                continue
             # Bust/natural should have already been settled
             if player.has_been_settled:
                 continue
