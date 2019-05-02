@@ -7,6 +7,8 @@ from participants import *
 # TODO:
 #   how to remove player with no money
 #   double down
+#   Fix can_double_down to account for aces
+#   split pairs
 #   better draw
 #   unit tests
 ###############################################################
@@ -58,24 +60,8 @@ class Game:
 
             player = self.players[self.curr_player]
 
-            # If player has natural, pay 3/2 * bet
-            player_has_natural = (player.hand_value == kMaxHandValue)
-            if player_has_natural:
-                player.settle_up(player.current_bet + player.current_bet/2)
+            if self._get_player_moves(player):
                 left_to_settle_up -= 1
-                continue
-
-            while player.prompt_move():
-                player.add_card(self.deck.get_card())
-                # If player busts, settle them up
-                if player.hand_value < 0:
-                    player.settle_up(-player.current_bet)
-                    left_to_settle_up -= 1
-                    break
-                # If player reaches max value (21), don't prompt more moves
-                elif player.hand_value == kMaxHandValue:
-                    break
-                self._draw()
 
         self.curr_player = -1
         self._draw(True)
@@ -103,6 +89,35 @@ class Game:
                 player.add_card(self.deck.get_card())
 
             self.dealer.add_card(self.deck.get_card())
+
+    def _get_player_moves(self, player):
+        # If player has natural, pay 3/2 * bet
+        player_has_natural = (player.hand_value == kMaxHandValue)
+        if player_has_natural:
+            player.settle_up(player.current_bet + player.current_bet / 2)
+            return True
+
+        player_should_move = True
+        while player_should_move:
+            move = player.prompt_move()
+            if move == kHit:
+                player.add_card(self.deck.get_card())
+                # If player busts, settle them up
+                if player.hand_value < 0:
+                    player.settle_up(-player.current_bet)
+                    return True
+                # If player reaches max (21), don't prompt more moves
+                elif player.hand_value == kMaxHandValue:
+                    break
+                self._draw()
+            elif move == kDoubleDown:
+                player.add_card(self.deck.get_card())
+                player.double_down()
+                player_should_move = False
+            else:
+                player_should_move = False
+        # Did not settle up yet
+        return False
 
     def _settle_up(self):
         for player in self.players:

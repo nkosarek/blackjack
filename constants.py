@@ -14,3 +14,25 @@ kMinNumPlayers = 1
 kMaxNumPlayers = 7
 
 kInitPlayerMoney = 1000
+
+kNoMove = -1
+kHit = 5
+kStand = 6
+kDoubleDown = 7
+
+kHitInput = "h"
+kStandInput = "s"
+kDoubleDownInput = "d"
+
+kBetPrompt = "Player {}, place your bet: "
+kBetNonDigitError = "Invalid input. Please input an integer"
+kBetNotEnoughMoney = "Invalid input. You don't have that much money to bet"
+
+kMovePrompt = "Player {}, hit or stand? (%s/%s): " % (kHitInput, kStandInput)
+kMovePromptWithDoubleDown = "Player {}, hit, stand, or double down? (%s/%s/%s): "\
+    % (kHitInput, kStandInput, kDoubleDownInput)
+
+kMoveError = "Invalid input. Please type either '{}' or '{}'"\
+    .format(kHitInput, kStandInput)
+kMoveErrorWithDoubleDown = "Invalid input. Please type '{}', '{}', or '{}'"\
+    .format(kHitInput, kStandInput, kDoubleDownInput)

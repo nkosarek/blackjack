@@ -57,30 +57,55 @@ class Player(Participant):
         self.current_bet = 0
         self.money = kInitPlayerMoney
         self.has_been_settled = False
+        self.has_made_move = False
 
     def prompt_bet(self):
         while True:
-            input_str = raw_input("Player " + str(self.number) +
-                                  ", place your bet: ")
+            input_str = raw_input(kBetPrompt.format(self.number))
             if not input_str.isdigit():
-                print "Invalid input. Please input an integer"
+                print kBetNonDigitError
                 continue
             bet = int(input_str)
             if bet > self.money:
-                print "Invalid input. You don't have that much money to bet"
+                print kBetNotEnoughMoney
             else:
                 self.current_bet = bet
                 return
 
     def prompt_move(self):
-        while True:
-            input_str = raw_input("Player " + str(self.number) +
-                                  ", hit or stand? (h/s): ")
-            if input_str == "h":
-                return True
-            elif input_str == "s":
-                return False
-            print "Invalid input. Please type either 'h' or 's'"
+        can_double_down = self.can_double_down()
+        if can_double_down:
+            input_prompt = kMovePromptWithDoubleDown.format(self.number)
+            error_msg = kMoveErrorWithDoubleDown
+        else:
+            input_prompt = kMovePrompt.format(self.number)
+            error_msg = kMoveError
+
+        move = kNoMove
+        while move == kNoMove:
+            input_str = raw_input(input_prompt)
+            if input_str == kHitInput:
+                move = kHit
+                break
+            elif input_str == kStandInput:
+                move = kStand
+                break
+            elif can_double_down and input_str == kDoubleDownInput:
+                move = kDoubleDown
+                break
+            print error_msg
+
+        self.has_made_move = True
+        return move
+
+    def can_double_down(self):
+        # TODO: Fix this to account for 9,10,11 made with an ace
+        if not self.has_made_move and 9 <= self.hand_value <= 11:
+            return True
+        return False
+
+    def double_down(self):
+        self.current_bet *= 2
 
     def settle_up(self, payout):
         self.money += payout
@@ -90,6 +115,7 @@ class Player(Participant):
     def clear_hand(self):
         super(Player, self).clear_hand()
         self.has_been_settled = False
+        self.has_made_move = False
 
 
 class Dealer(Participant):
