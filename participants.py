@@ -24,7 +24,7 @@ def get_hand_value(hand):
         return -1
 
     for _ in xrange(num_aces):
-        if kMaxHandValue - hand_value - kAltAceValue > num_aces - 1:
+        if kMaxHandValue - hand_value - kAltAceValue >= num_aces - 1:
             hand_value += kAltAceValue
             num_aces -= 1
 
@@ -39,13 +39,15 @@ class Participant(object):
     def add_card(self, card):
         self.hand.append(card)
         self.hand_value = get_hand_value(self.hand)
-        if self.hand_value < 0:
-            return False
-        return True
 
     def clear_hand(self):
         self.hand = []
         self.hand_value = 0
+
+    def get_hand_value_str(self):
+        if self.hand_value < 0:
+            return "*"
+        return str(self.hand_value)
 
 
 class Player(Participant):
@@ -54,6 +56,7 @@ class Player(Participant):
         self.number = number
         self.current_bet = 0
         self.money = kInitPlayerMoney
+        self.has_been_settled = False
 
     def prompt_bet(self):
         while True:
@@ -82,6 +85,11 @@ class Player(Participant):
     def settle_up(self, payout):
         self.money += payout
         self.current_bet = 0
+        self.has_been_settled = True
+
+    def clear_hand(self):
+        super(Player, self).clear_hand()
+        self.has_been_settled = False
 
 
 class Dealer(Participant):

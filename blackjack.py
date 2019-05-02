@@ -6,9 +6,9 @@ from participants import *
 ###############################################################
 # TODO:
 #   how to remove player with no money
-#   min and max bets
 #   double down
 #   better draw
+#   unit tests
 ###############################################################
 
 
@@ -17,7 +17,7 @@ class Game:
         self.deck = Deck()
         self.dealer = Dealer()
         self.players = []
-        self.curr_player = 0
+        self.curr_player = -1
 
     @staticmethod
     def _prompt_num_players():
@@ -45,36 +45,56 @@ class Game:
             self._play_round()
 
     def _play_round(self):
-        self._draw()
         self._prompt_bets()
         self._deal()
 
+        left_to_settle_up = len(self.players)
         for self.curr_player in xrange(len(self.players)):
             self._draw()
+
+            # If dealer has natural, immediately settle everyone up
+            if self.dealer.hand_value == kMaxHandValue:
+                break
+
             player = self.players[self.curr_player]
+
+            # If player has natural, pay 3/2 * bet
+            player_has_natural = (player.hand_value == kMaxHandValue)
+            if player_has_natural:
+                player.settle_up(player.current_bet + player.current_bet/2)
+                left_to_settle_up -= 1
+                continue
+
             while player.prompt_move():
-                if not player.add_card(self.deck.get_card()):
-                    # Bust
+                player.add_card(self.deck.get_card())
+                # If player busts, settle them up
+                if player.hand_value < 0:
                     player.settle_up(-player.current_bet)
+                    left_to_settle_up -= 1
+                    break
+                # If player reaches max value (21), don't prompt more moves
+                elif player.hand_value == kMaxHandValue:
                     break
                 self._draw()
-        self._draw()
 
-        while 0 <= self.dealer.hand_value < kDealerStandMin:
+        self.curr_player = -1
+        self._draw(True)
+
+        while left_to_settle_up > 0 and \
+                0 <= self.dealer.hand_value < kDealerStandMin:
             self.dealer.add_card(self.deck.get_card())
-            self._draw()
-            time.sleep(1)
+            self._draw(True)
 
         self._settle_up()
-        # self._draw()
-        time.sleep(2)
         self._clear_table()
 
         if self.deck.should_be_reshuffled:
             self.deck.shuffle()
 
     def _prompt_bets(self):
-        for player in self.players:
+        for self.curr_player in xrange(len(self.players)):
+            self._draw()
+            player = self.players[self.curr_player]
             player.prompt_bet()
 
     def _deal(self):
@@ -86,14 +106,17 @@ class Game:
 
     def _settle_up(self):
         for player in self.players:
-            if player.hand_value < 0:
-                # Bust should have already been settled
+            # Bust/natural should have already been settled
+            if player.has_been_settled:
                 continue
+            # Player beats dealer
             elif self.dealer.hand_value < 0 or \
                     self.dealer.hand_value < player.hand_value:
                 player.settle_up(player.current_bet)
+            # Dealer beats player
             elif self.dealer.hand_value > player.hand_value:
                 player.settle_up(-player.current_bet)
+            # Tie
             else:
                 player.settle_up(0)
 
@@ -102,23 +125,24 @@ class Game:
         for player in self.players:
             player.clear_hand()
 
-    def _draw(self):
+    def _draw(self, sleep=False):
         print "*********************************"
-        print "Dealer: ", self.dealer.hand_value
+        print "Dealer: ", self.dealer.get_hand_value_str()
         value_str = "Players: "
         money_str = " " * len(value_str)
         bet_str = money_str
         arrow_loc = len(value_str) + (6 * self.curr_player)
         for player in self.players:
-            player_val = "*" if player.hand_value < 0 else player.hand_value
-            value_str += "{:<6}".format(player_val)
+            value_str += "{:<6}".format(player.get_hand_value_str())
             money_str += "${:<5}".format(player.money)
             bet_str += "${:<5}".format(player.current_bet)
         print value_str
         print money_str
         print bet_str
-        if self.curr_player < len(self.players):
+        if 0 <= self.curr_player < len(self.players):
             print arrow_loc * " " + "^"
+        if sleep:
+            time.sleep(2)
 
 
 class Deck:
