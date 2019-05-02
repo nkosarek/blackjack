@@ -18,6 +18,7 @@ class Game:
         self.dealer = Dealer()
         self.players = []
         self.curr_player = -1
+        self.broke_count = 0
 
     @staticmethod
     def _prompt_num_players():
@@ -43,12 +44,15 @@ class Game:
 
         while True:
             self._play_round()
+            if self.broke_count == len(self.players):
+                break
+        print kEndGame
 
     def _play_round(self):
         self._prompt_bets()
         self._deal()
 
-        left_to_settle_up = len(self.players)
+        left_to_settle_up = len(self.players) - self.broke_count
         for self.curr_player in xrange(len(self.players)):
             player = self.players[self.curr_player]
             # Player has no money, skip them
@@ -112,6 +116,8 @@ class Game:
                 # If player busts, settle them up
                 if player.hand_value < 0:
                     player.settle_up(-player.current_bet)
+                    if player.money == 0:
+                        self.broke_count += 1
                     return True
                 # If player reaches max (21), don't prompt more moves
                 elif player.hand_value == kMaxHandValue:
@@ -144,6 +150,9 @@ class Game:
             # Tie
             else:
                 player.settle_up(0)
+
+            if player.money == 0:
+                self.broke_count += 1
 
     def _clear_table(self):
         self.dealer.clear_hand()

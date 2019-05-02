@@ -100,7 +100,9 @@ class Player(Participant):
 
     def can_double_down(self):
         # TODO: Fix this to account for 9,10,11 made with an ace
-        if not self.has_made_move and 9 <= self.hand_value <= 11:
+        if not self.has_made_move and \
+                self.current_bet * 2 <= self.money and \
+                9 <= self.hand_value <= 11:
             return True
         return False
 

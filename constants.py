@@ -36,3 +36,5 @@ kMoveError = "Invalid input. Please type either '{}' or '{}'"\
     .format(kHitInput, kStandInput)
 kMoveErrorWithDoubleDown = "Invalid input. Please type '{}', '{}', or '{}'"\
     .format(kHitInput, kStandInput, kDoubleDownInput)
+
+kEndGame = "Ha ha ha dealer wins! What did you think was going to happen?"
