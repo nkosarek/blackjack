@@ -28,7 +28,8 @@ kSplitPairInput = "p"
 
 kBetPrompt = "Player {}, place your bet: "
 kBetNonDigitError = "Invalid input. Please input an integer"
-kBetNotEnoughMoney = "Invalid input. You don't have that much money to bet"
+kBetNotEnoughMoneyError = "Invalid input. You don't have that much money to bet"
+kBetZeroError = "You can't bet nothing. Come on"
 
 kMovePrompt = "Player {}, hit or stand? (%s/%s): " % (kHitInput, kStandInput)
 kMovePromptWithDoubleDown = "Player {}, hit, stand, or double down? (%s/%s/%s): "\

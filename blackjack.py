@@ -13,12 +13,6 @@ import time
 
 from participants import *
 
-###############################################################
-# TODO:
-#   hide dealer's second card
-#   unit tests
-###############################################################
-
 
 class Game:
     def __init__(self):
@@ -92,7 +86,7 @@ class Game:
         first = True
         while left_to_settle_up > 0 and \
                 0 <= self.dealer.hand_value < kDealerStandMin:
-            if first:
+            if first and not self.dealer.second_card_visible:
                 self.dealer.reveal_second_card()
                 self._draw(True)
                 first = False

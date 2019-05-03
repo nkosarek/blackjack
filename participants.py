@@ -43,7 +43,9 @@ class Player(Participant):
                 continue
             bet = int(input_str)
             if bet > self.money:
-                print kBetNotEnoughMoney
+                print kBetNotEnoughMoneyError
+            elif bet == 0:
+                print kBetZeroError
             else:
                 self.current_bet = bet
                 return
