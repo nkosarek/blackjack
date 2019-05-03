@@ -128,7 +128,7 @@ class Game:
         # If player has natural, pay 3/2 * bet
         player_has_natural = (player.hand_value == kMaxHandValue)
         if player_has_natural:
-            player.settle_up(player.current_bet + player.current_bet / 2)
+            player.settle_up_first(player.current_bet + player.current_bet / 2)
             return True
 
         settled_up = False
@@ -196,16 +196,28 @@ class Game:
             # Bust/natural should have already been settled
             if player.has_been_settled():
                 continue
-            # Player beats dealer
-            elif self.dealer.hand_value < 0 or \
-                    self.dealer.hand_value < player.hand_value:
-                player.settle_up(player.current_bet)
-            # Dealer beats player
-            elif self.dealer.hand_value > player.hand_value:
-                player.settle_up(-player.current_bet)
-            # Tie
-            else:
-                player.settle_up(0)
+            if not player.first_has_been_settled:
+                # Player beats dealer
+                if self.dealer.hand_value < 0 or \
+                        self.dealer.hand_value < player.hand_value:
+                    player.settle_up_first(player.current_bet)
+                # Dealer beats player
+                elif self.dealer.hand_value > player.hand_value:
+                    player.settle_up_first(-player.current_bet)
+                # Tie
+                else:
+                    player.settle_up_first(0)
+            if player.has_split and not player.second_has_been_settled:
+                # Player beats dealer
+                if self.dealer.hand_value < 0 or \
+                        self.dealer.hand_value < player.second_hand_value:
+                    player.settle_up_second(player.current_second_bet)
+                # Dealer beats player
+                elif self.dealer.hand_value > player.second_hand_value:
+                    player.settle_up_second(-player.current_second_bet)
+                # Tie
+                else:
+                    player.settle_up_second(0)
 
             if player.money == 0:
                 self.broke_count += 1

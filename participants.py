@@ -104,10 +104,6 @@ class Player(Participant):
         self.second_hand.append(card)
         self.second_hand_value = get_highest_valid_hand_value(self.second_hand)
 
-    def settle_up(self, payout):
-        self.settle_up_first(payout)
-        self.settle_up_second(payout)
-
     def settle_up_first(self, payout):
         self.money += payout
         self.current_bet = 0
