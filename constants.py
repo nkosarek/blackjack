@@ -48,4 +48,33 @@ kMoveErrorWithSplitPair = "Invalid input. Please type '{}', '{}', or '{}'"\
 kMoveErrorWithBoth = "Invalid input. Please type '{}', '{}', '{}', or '{}'"\
     .format(kHitInput, kStandInput, kDoubleDownInput, kSplitPairInput)
 
+kCardHeight = 4
+kPrefixLen = 14
+kPlayerWidth = 14
+
+kDealerDelim = "-" * (kPlayerWidth * 2)
+
+kPrefix = " " * kPrefixLen
+
+kDealerStr = "Dealer"
+kDealerStr += " " * (kPrefixLen - len(kDealerStr))
+
+kPlayersStr = "Players"
+kPlayersStr += " " * (kPrefixLen - len(kPlayersStr))
+kPlayersRow = 0
+
+kMoneyStr = "Money: "
+kMoneyStr = " " * (kPrefixLen - len(kMoneyStr)) + kMoneyStr
+kMoneyRow = 1
+
+kBetStr = "Bets: "
+kBetStr = " " * (kPrefixLen - len(kBetStr)) + kBetStr
+kBetRow = 2
+
+kValuesStr = "Card Value: "
+kValuesStr = " " * (kPrefixLen - len(kValuesStr)) + kValuesStr
+kValuesRow = 3
+
+kArrowPadding = 2
+
 kEndGame = "Ha ha ha dealer wins! What did you think was going to happen?"
