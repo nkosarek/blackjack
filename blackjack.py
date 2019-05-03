@@ -8,10 +8,10 @@
 #
 ###############################################################
 
-import random
 import time
 
 from participants import *
+from deck import *
 
 
 class Game:
@@ -339,22 +339,6 @@ class Game:
                 rows[row - 1] += "|{:<4}| ".format(card_str)
             rows[row] += "|{:>4}| ".format(card_str)
             rows[row + 1] += " ----  "
-
-
-class Deck:
-    def __init__(self):
-        self.cards = range(kNumCardsInDeck * kNumDecks)
-        self.should_be_reshuffled = False
-
-    def shuffle(self):
-        self.cards = range(kNumCardsInDeck * kNumDecks)
-
-    def get_card(self):
-        card_idx = random.randint(0, len(self.cards) - 1)
-        card = self.cards.pop(card_idx)
-        if len(self.cards) < kReshuffleCount:
-            self.should_be_reshuffled = True
-        return card
 
 
 if __name__ == "__main__":
