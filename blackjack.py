@@ -84,13 +84,14 @@ class Game:
         self._draw(True)
 
         first = True
-        while left_to_settle_up > 0 and \
-                0 <= self.dealer.hand_value < kDealerStandMin:
+        while left_to_settle_up > 0 and self.dealer.hand_value >= 0:
             if first and not self.dealer.second_card_visible:
                 self.dealer.reveal_second_card()
                 self._draw(True)
                 first = False
-                continue
+            if self.dealer.hand_value >= kDealerStandMin or \
+                    self.dealer.hand_value < 0:
+                break
             self.dealer.add_card(self.deck.get_card())
             self._draw(True)
 
@@ -224,7 +225,11 @@ class Game:
             time.sleep(2)
 
     def _draw_dealers_cards(self):
-        value_str = kValuesStr + get_hand_value_str(self.dealer.hand_value)
+        if self.dealer.second_card_visible:
+            value_str = kValuesStr + get_hand_value_str(self.dealer.hand_value)
+        else:
+            value_str = kValuesStr + "?"
+
         if self.dealer.hand_value == 0:
             print value_str
             print kDealerStr
