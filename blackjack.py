@@ -63,6 +63,13 @@ class Game:
         self._prompt_bets()
         self._deal()
 
+        # Reveal dealer's second card if capable of a natural
+        first_dealer_card_value = get_card_value(self.dealer.hand[0])
+        if first_dealer_card_value == 1 or \
+                first_dealer_card_value == 10:
+            self._draw(True)
+            self.dealer.reveal_second_card()
+
         left_to_settle_up = len(self.players) - self.broke_count
         for self.curr_player in xrange(len(self.players)):
             player = self.players[self.curr_player]
@@ -82,8 +89,14 @@ class Game:
         self.curr_player = -1
         self._draw(True)
 
+        first = True
         while left_to_settle_up > 0 and \
                 0 <= self.dealer.hand_value < kDealerStandMin:
+            if first:
+                self.dealer.reveal_second_card()
+                self._draw(True)
+                first = False
+                continue
             self.dealer.add_card(self.deck.get_card())
             self._draw(True)
 
@@ -104,6 +117,7 @@ class Game:
                 continue
             self._draw()
             player.prompt_bet()
+        self.curr_player = -1
 
     def _deal(self):
         for _ in xrange(kNumCardsToDeal):
@@ -225,17 +239,24 @@ class Game:
         # Dealer has cards to display
         rows = [kPrefix, kPrefix, kPrefix, kPrefix, value_str, kDealerStr]
         hand_len = len(self.dealer.hand)
+        hide_second = not self.dealer.second_card_visible
         for i in xrange(hand_len):
             card = self.dealer.hand[i]
             card_str = get_card_str(card)
             rows[0] += " --"
-            rows[1] += "|{:<2}".format(card_str)
+            if hide_second and i == 1:
+                rows[1] += "|  "
+            else:
+                rows[1] += "|{:<2}".format(card_str)
             rows[2] += "|  "
             rows[3] += " --"
             if i == hand_len - 1:
                 rows[0] += "-- "
                 rows[1] += "  |"
-                rows[2] += "{:>2}|".format(card_str)
+                if hide_second and i == 1:
+                    rows[2] += "  |"
+                else:
+                    rows[2] += "{:>2}|".format(card_str)
                 rows[3] += "-- "
 
         for row in rows:
