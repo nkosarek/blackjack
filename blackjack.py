@@ -304,7 +304,7 @@ class Game:
                 rows.append(kPrefix + " " * (kPlayerWidth * i))
 
             # Print cards
-            Game._print_hand(rows, player.hand)
+            Game._print_hand(rows, player.hand, num_info_rows)
 
             # Fill out empty rows below this player's cards
             for j in xrange(first_height_required, len(rows)):
@@ -312,7 +312,7 @@ class Game:
 
             # Print out second hand if player split a pair
             if player.has_split:
-                Game._print_hand(rows, player.second_hand)
+                Game._print_hand(rows, player.second_hand, num_info_rows)
                 # Fill out empty rows below player's second cards
                 for j in xrange(second_height_required, len(rows)):
                     rows[j] += empty_card_str
@@ -335,11 +335,12 @@ class Game:
             print " " * arrow_loc + "^"
 
     @staticmethod
-    def _print_hand(rows, hand):
-        for i in xrange(len(hand)):
+    def _print_hand(rows, hand, num_info_rows):
+        num_cards = len(hand)
+        for i in xrange(num_cards):
             card_str = get_card_str(hand[i])
-            row = i * kCardHeight / 2 + 6
-            if i == 0:
+            row = (num_cards - i) * kCardHeight / 2 + num_info_rows
+            if i == num_cards - 1:
                 rows[row - 2] += " ----  "
                 rows[row - 1] += "|{:<4}| ".format(card_str)
             rows[row] += "|{:>4}| ".format(card_str)
